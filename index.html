@@ -2,32 +2,48 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <!-- The viewport meta tag makes the site responsive on mobile devices -->
+  <!-- Ensure the website scales correctly on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Responsive Colorful Wheel of Fortune Picker</title>
-  <!-- Google Fonts for a modern look -->
+  <title>Mobile-Fit Wheel of Fortune Picker</title>
+  <!-- Google Fonts for a modern, fresh look -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* Overall Page Styling */
+    /* Reset some default spacing */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Mobile-first styling for the entire page */
     body {
       font-family: 'Poppins', sans-serif;
-      text-align: center;
       background: linear-gradient(45deg, #f093fb, #f5576c);
-      margin: 0;
-      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       color: #333;
+      padding: 10px;
     }
-    /* Container styling: maximum width with responsive width */
+
+    /* Container that holds the entire application */
     .container {
+      width: 95%;
       max-width: 600px;
-      width: 90%;
-      margin: auto;
       background: #fff;
       padding: 20px;
       border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     }
-    /* Textarea styling */
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Textarea for name input */
     textarea {
       width: 100%;
       height: 50px;
@@ -43,11 +59,13 @@
       border-color: #6a11cb;
       outline: none;
     }
-    /* Colorful, rounded buttons */
+
+    /* Rounded, colorful buttons that span the full width */
     button {
-      padding: 10px 20px;
+      width: 100%;
+      padding: 10px;
       font-size: 16px;
-      margin: 5px;
+      margin: 5px 0;
       cursor: pointer;
       border: none;
       border-radius: 30px;
@@ -62,30 +80,34 @@
       background: #bbb;
       cursor: not-allowed;
     }
-    /* Responsive Canvas styling: width adjusts to container while keeping a square aspect ratio */
+
+    /* Responsive canvas: It fits the container and remains square */
     canvas {
-      margin-top: 20px;
+      display: block;
+      margin: 20px auto;
       border: 2px solid #333;
       border-radius: 50%;
       background: #fff;
       width: 100%;
       height: auto;
-      max-width: 500px;
     }
-    /* Result text styling */
+
+    /* Styling for the result text */
     #result {
       margin-top: 20px;
       font-size: 24px;
       font-weight: bold;
       color: #27ae60;
+      text-align: center;
     }
-    /* Winner History list styling */
+
+    /* Styling for the winner history */
     #winnerHistory {
       margin-top: 30px;
-      text-align: left;
     }
     #winnerHistory h2 {
       margin-bottom: 10px;
+      font-size: 20px;
     }
     #winnersList {
       list-style: none;
@@ -97,32 +119,16 @@
       background: #f9f9f9;
       border-radius: 5px;
       margin-bottom: 5px;
-    }
-    /* Media query for smaller screens */
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 24px;
-      }
-      button {
-        font-size: 14px;
-        padding: 8px 16px;
-      }
-      textarea {
-        font-size: 14px;
-      }
-      #result {
-        font-size: 20px;
-      }
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Responsive Colorful Wheel of Fortune Picker</h1>
-    <textarea id="namesInput" placeholder="Enter names separated by commas"></textarea><br>
+    <h1>Wheel of Fortune Picker</h1>
+    <textarea id="namesInput" placeholder="Enter names separated by commas"></textarea>
     <button id="drawButton">Draw Wheel</button>
     <button id="spinButton">Spin the Wheel!</button>
-    <br>
     <canvas id="wheelCanvas" width="500" height="500"></canvas>
     <div id="result"></div>
     <div id="winnerHistory">
@@ -136,31 +142,31 @@
     const canvas = document.getElementById("wheelCanvas");
     const ctx = canvas.getContext("2d");
     let names = [];
-    let currentAngle = 0;  // Current rotation angle (in radians)
-    let arc = 0;           // Angle per segment (calculated later)
-    let winners = [];      // Array to track the history of winners
+    let currentAngle = 0;  // Current rotation angle in radians
+    let arc = 0;           // Angle per segment (computed later)
+    let winners = [];      // Array to track winning names
 
-    // Resize the canvas based on the container width (to maintain responsiveness)
+    // Function to resize the canvas based on its container's width
     function resizeCanvas() {
       const containerWidth = document.querySelector('.container').clientWidth;
       canvas.width = containerWidth;
-      canvas.height = containerWidth; // Keep a square canvas for the wheel
+      canvas.height = containerWidth; // Keep the canvas square
       drawWheel(); // Redraw the wheel after resizing
     }
-    
-    // Redraw canvas on window resize
+
+    // Listen for window resize events (e.g., orientation changes)
     window.addEventListener('resize', resizeCanvas);
-    
-    // Draw the wheel on the canvas
+
+    // Draw the wheel with the current names and rotation
     function drawWheel() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (names.length === 0) return;
-      arc = 2 * Math.PI / names.length;  // Equal segment angle
+      arc = 2 * Math.PI / names.length;
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const outsideRadius = Math.min(centerX, centerY) - 20;
-      
-      // Draw each segment with its corresponding name
+
+      // Draw each segment and label it
       for (let i = 0; i < names.length; i++) {
         const angle = currentAngle + i * arc;
         ctx.beginPath();
@@ -168,7 +174,7 @@
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, outsideRadius, angle, angle + arc, false);
         ctx.fill();
-        
+
         // Draw the text label for this segment
         ctx.save();
         ctx.translate(centerX, centerY);
@@ -179,12 +185,12 @@
         ctx.fillText(names[i], outsideRadius - 10, 10);
         ctx.restore();
       }
-      
-      // Draw the pointer at the bottom of the wheel
+
+      // Draw the pointer (triangle) at the bottom of the wheel
       drawPointer();
     }
 
-    // Draw the pointer (triangle) at the bottom of the wheel
+    // Draw a triangle pointer at the bottom of the wheel
     function drawPointer() {
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
@@ -209,10 +215,10 @@
       return colors[index % colors.length];
     }
 
-    // Update the Winner History list in the DOM
+    // Update the winner history list in the DOM
     function updateWinnersList() {
       const list = document.getElementById("winnersList");
-      list.innerHTML = ""; // Clear current list
+      list.innerHTML = "";
       winners.forEach(function(winner, index) {
         const li = document.createElement("li");
         li.textContent = (index + 1) + ". " + winner;
@@ -228,8 +234,8 @@
         document.getElementById("result").innerText = "Please enter some names.";
         return;
       }
-      currentAngle = 0;  // Reset rotation
-      resizeCanvas();    // Resize canvas and draw the wheel
+      currentAngle = 0; // Reset rotation
+      resizeCanvas();   // Ensure the canvas is sized correctly
       drawWheel();
       document.getElementById("result").innerText = "";
     });
@@ -246,13 +252,12 @@
     // Animate the wheel spin with an easing effect
     function spinWheel() {
       document.getElementById("spinButton").disabled = true;
-      const spinDuration = 5000; // Duration in milliseconds
+      const spinDuration = 5000; // Spin for 5 seconds
       const initialAngle = currentAngle;
-      // Spin at least 5 full rotations plus a random extra angle
-      const totalSpinDegrees = 360 * 5 + Math.floor(Math.random() * 360);
+      const totalSpinDegrees = 360 * 5 + Math.floor(Math.random() * 360); // 5+ full rotations
       const targetAngle = initialAngle + totalSpinDegrees * Math.PI / 180;
       let startTime = null;
-      
+
       function animateSpin(timestamp) {
         if (!startTime) startTime = timestamp;
         const elapsed = timestamp - startTime;
@@ -275,10 +280,9 @@
       return 1 - Math.pow(1 - t, 3);
     }
 
-    // Determine which segment won and update the winner history
+    // Determine the winning segment and update the winner history
     function announceWinner() {
-      // Since the pointer is drawn at the bottom, the pointer angle is 90° (π/2 radians)
-      let pointerAngle = Math.PI / 2;
+      const pointerAngle = Math.PI / 2; // Bottom of the wheel
       let relativeAngle = (pointerAngle - currentAngle) % (2 * Math.PI);
       if (relativeAngle < 0) {
         relativeAngle += 2 * Math.PI;
@@ -286,15 +290,12 @@
       const winningIndex = Math.floor(relativeAngle / arc);
       const winner = names[winningIndex];
       document.getElementById("result").innerText = "Winner: " + winner;
-      
-      // Add the winner to the history array and update the display
       winners.push(winner);
       updateWinnersList();
     }
-    
+
     // Initialize canvas size on page load
     resizeCanvas();
   </script>
 </body>
 </html>
-
