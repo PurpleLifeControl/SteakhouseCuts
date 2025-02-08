@@ -2,8 +2,10 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Steakhouse Cuts</title>
-  <!-- Using Google Fonts for a modern, fresh look -->
+  <!-- The viewport meta tag makes the site responsive on mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Colorful Wheel of Fortune Picker</title>
+  <!-- Google Fonts for a modern look -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     /* Overall Page Styling */
@@ -15,18 +17,19 @@
       padding: 20px;
       color: #333;
     }
-    /* Container styling with rounded corners and a subtle shadow */
+    /* Container styling: maximum width with responsive width */
     .container {
       max-width: 600px;
+      width: 90%;
       margin: auto;
       background: #fff;
       padding: 20px;
       border-radius: 15px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
-    /* Textarea for name input */
+    /* Textarea styling */
     textarea {
-      width: 90%;
+      width: 100%;
       height: 50px;
       padding: 10px;
       margin-bottom: 10px;
@@ -40,7 +43,7 @@
       border-color: #6a11cb;
       outline: none;
     }
-    /* Colorful, rounded buttons with a gradient background */
+    /* Colorful, rounded buttons */
     button {
       padding: 10px 20px;
       font-size: 16px;
@@ -59,12 +62,15 @@
       background: #bbb;
       cursor: not-allowed;
     }
-    /* Canvas styling for the wheel */
+    /* Responsive Canvas styling: width adjusts to container while keeping a square aspect ratio */
     canvas {
       margin-top: 20px;
       border: 2px solid #333;
       border-radius: 50%;
       background: #fff;
+      width: 100%;
+      height: auto;
+      max-width: 500px;
     }
     /* Result text styling */
     #result {
@@ -92,11 +98,27 @@
       border-radius: 5px;
       margin-bottom: 5px;
     }
+    /* Media query for smaller screens */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 24px;
+      }
+      button {
+        font-size: 14px;
+        padding: 8px 16px;
+      }
+      textarea {
+        font-size: 14px;
+      }
+      #result {
+        font-size: 20px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Steakhouse Cuts</h1>
+    <h1>Responsive Colorful Wheel of Fortune Picker</h1>
     <textarea id="namesInput" placeholder="Enter names separated by commas"></textarea><br>
     <button id="drawButton">Draw Wheel</button>
     <button id="spinButton">Spin the Wheel!</button>
@@ -118,9 +140,21 @@
     let arc = 0;           // Angle per segment (calculated later)
     let winners = [];      // Array to track the history of winners
 
+    // Resize the canvas based on the container width (to maintain responsiveness)
+    function resizeCanvas() {
+      const containerWidth = document.querySelector('.container').clientWidth;
+      canvas.width = containerWidth;
+      canvas.height = containerWidth; // Keep a square canvas for the wheel
+      drawWheel(); // Redraw the wheel after resizing
+    }
+    
+    // Redraw canvas on window resize
+    window.addEventListener('resize', resizeCanvas);
+    
     // Draw the wheel on the canvas
     function drawWheel() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (names.length === 0) return;
       arc = 2 * Math.PI / names.length;  // Equal segment angle
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
@@ -195,6 +229,7 @@
         return;
       }
       currentAngle = 0;  // Reset rotation
+      resizeCanvas();    // Resize canvas and draw the wheel
       drawWheel();
       document.getElementById("result").innerText = "";
     });
@@ -256,6 +291,10 @@
       winners.push(winner);
       updateWinnersList();
     }
+    
+    // Initialize canvas size on page load
+    resizeCanvas();
   </script>
 </body>
 </html>
+
