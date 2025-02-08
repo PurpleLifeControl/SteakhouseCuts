@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Steakhouse Cuts</title>
+  <!-- Using Google Fonts for a modern, fresh look -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Overall Page Styling */
+    body {
+      font-family: 'Poppins', sans-serif;
+      text-align: center;
+      background: linear-gradient(45deg, #f093fb, #f5576c);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    /* Container styling with rounded corners and a subtle shadow */
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    /* Textarea for name input */
+    textarea {
+      width: 90%;
+      height: 50px;
+      padding: 10px;
+      margin-bottom: 10px;
+      resize: none;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      transition: border-color 0.3s ease;
+    }
+    textarea:focus {
+      border-color: #6a11cb;
+      outline: none;
+    }
+    /* Colorful, rounded buttons with a gradient background */
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      cursor: pointer;
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(45deg, #6a11cb, #2575fc);
+      color: #fff;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: linear-gradient(45deg, #2575fc, #6a11cb);
+    }
+    button:disabled {
+      background: #bbb;
+      cursor: not-allowed;
+    }
+    /* Canvas styling for the wheel */
+    canvas {
+      margin-top: 20px;
+      border: 2px solid #333;
+      border-radius: 50%;
+      background: #fff;
+    }
+    /* Result text styling */
+    #result {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #27ae60;
+    }
+    /* Winner History list styling */
+    #winnerHistory {
+      margin-top: 30px;
+      text-align: left;
+    }
+    #winnerHistory h2 {
+      margin-bottom: 10px;
+    }
+    #winnersList {
+      list-style: none;
+      padding: 0;
+    }
+    #winnersList li {
+      padding: 4px 10px;
+      border-bottom: 1px solid #ccc;
+      background: #f9f9f9;
+      border-radius: 5px;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Steakhouse Cuts</h1>
+    <textarea id="namesInput" placeholder="Enter names separated by commas"></textarea><br>
+    <button id="drawButton">Draw Wheel</button>
+    <button id="spinButton">Spin the Wheel!</button>
+    <br>
+    <canvas id="wheelCanvas" width="500" height="500"></canvas>
+    <div id="result"></div>
+    <div id="winnerHistory">
+      <h2>Winner History</h2>
+      <ul id="winnersList"></ul>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    const canvas = document.getElementById("wheelCanvas");
+    const ctx = canvas.getContext("2d");
+    let names = [];
+    let currentAngle = 0;  // Current rotation angle (in radians)
+    let arc = 0;           // Angle per segment (calculated later)
+    let winners = [];      // Array to track the history of winners
+
+    // Draw the wheel on the canvas
+    function drawWheel() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      arc = 2 * Math.PI / names.length;  // Equal segment angle
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const outsideRadius = Math.min(centerX, centerY) - 20;
+      
+      // Draw each segment with its corresponding name
+      for (let i = 0; i < names.length; i++) {
+        const angle = currentAngle + i * arc;
+        ctx.beginPath();
+        ctx.fillStyle = getColor(i);
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, outsideRadius, angle, angle + arc, false);
+        ctx.fill();
+        
+        // Draw the text label for this segment
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle + arc / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 16px sans-serif";
+        ctx.fillText(names[i], outsideRadius - 10, 10);
+        ctx.restore();
+      }
+      
+      // Draw the pointer at the bottom of the wheel
+      drawPointer();
+    }
+
+    // Draw the pointer (triangle) at the bottom of the wheel
+    function drawPointer() {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const outsideRadius = Math.min(centerX, centerY) - 20;
+      const pointerTipY = centerY + outsideRadius + 20;
+      ctx.fillStyle = "#333";
+      ctx.beginPath();
+      ctx.moveTo(centerX - 15, centerY + outsideRadius);
+      ctx.lineTo(centerX + 15, centerY + outsideRadius);
+      ctx.lineTo(centerX, pointerTipY);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Return a color from a preset list based on the index
+    function getColor(index) {
+      const colors = [
+        "#e74c3c", "#8e44ad", "#3498db", "#16a085",
+        "#f39c12", "#d35400", "#2ecc71", "#e67e22",
+        "#1abc9c", "#2c3e50"
+      ];
+      return colors[index % colors.length];
+    }
+
+    // Update the Winner History list in the DOM
+    function updateWinnersList() {
+      const list = document.getElementById("winnersList");
+      list.innerHTML = ""; // Clear current list
+      winners.forEach(function(winner, index) {
+        const li = document.createElement("li");
+        li.textContent = (index + 1) + ". " + winner;
+        list.appendChild(li);
+      });
+    }
+
+    // Event listener for the "Draw Wheel" button
+    document.getElementById("drawButton").addEventListener("click", function() {
+      const input = document.getElementById("namesInput").value;
+      names = input.split(",").map(name => name.trim()).filter(name => name !== "");
+      if (names.length === 0) {
+        document.getElementById("result").innerText = "Please enter some names.";
+        return;
+      }
+      currentAngle = 0;  // Reset rotation
+      drawWheel();
+      document.getElementById("result").innerText = "";
+    });
+
+    // Event listener for the "Spin the Wheel!" button
+    document.getElementById("spinButton").addEventListener("click", function() {
+      if (names.length === 0) {
+        document.getElementById("result").innerText = "Please draw the wheel first.";
+        return;
+      }
+      spinWheel();
+    });
+
+    // Animate the wheel spin with an easing effect
+    function spinWheel() {
+      document.getElementById("spinButton").disabled = true;
+      const spinDuration = 5000; // Duration in milliseconds
+      const initialAngle = currentAngle;
+      // Spin at least 5 full rotations plus a random extra angle
+      const totalSpinDegrees = 360 * 5 + Math.floor(Math.random() * 360);
+      const targetAngle = initialAngle + totalSpinDegrees * Math.PI / 180;
+      let startTime = null;
+      
+      function animateSpin(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / spinDuration, 1);
+        const easedProgress = easeOutCubic(progress);
+        currentAngle = initialAngle + (targetAngle - initialAngle) * easedProgress;
+        drawWheel();
+        if (progress < 1) {
+          requestAnimationFrame(animateSpin);
+        } else {
+          document.getElementById("spinButton").disabled = false;
+          announceWinner();
+        }
+      }
+      requestAnimationFrame(animateSpin);
+    }
+
+    // Ease-out cubic function for smooth deceleration
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    // Determine which segment won and update the winner history
+    function announceWinner() {
+      // Since the pointer is drawn at the bottom, the pointer angle is 90° (π/2 radians)
+      let pointerAngle = Math.PI / 2;
+      let relativeAngle = (pointerAngle - currentAngle) % (2 * Math.PI);
+      if (relativeAngle < 0) {
+        relativeAngle += 2 * Math.PI;
+      }
+      const winningIndex = Math.floor(relativeAngle / arc);
+      const winner = names[winningIndex];
+      document.getElementById("result").innerText = "Winner: " + winner;
+      
+      // Add the winner to the history array and update the display
+      winners.push(winner);
+      updateWinnersList();
+    }
+  </script>
+</body>
+</html>
